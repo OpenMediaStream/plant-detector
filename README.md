@@ -10,6 +10,7 @@
 </br>
 
 # 🚀️ Quick Start
+> This Quick Start was written using python==3.10.12
 ### Create a python virtual enviroment using `venv`:
 ```bash
 python -m venv ./
