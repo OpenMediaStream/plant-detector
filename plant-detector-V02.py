@@ -30,6 +30,7 @@ from common_utils.web_video_stream_multiple import mjpg_stream
 import numpy
 from threading import Thread
 import os
+import json
 
 # -----------------------------------------------------------------------------
 
@@ -39,16 +40,19 @@ HOST = "smartcampus.maua.br"
 PORT = 1883
 USER = "PUBLIC"
 PASSWORD = "public"
-SUB_TOPIC = "cb/test1"
-PUB_TOPIC = "cb/test2"
+SUB_TOPIC = "OpenMediaStream/plant-detector/001/input"
+PUB_TOPIC = "OpenMediaStream/plant-detector/001/output"
 
 # YOLO 
 YOLO_IA = './yolo/best_ICv2.pt'
-IMG_PATH = './img/rtsp_img.jpg'
+PROCESSED_IMAGE = './img/output.jpg'
 
 # RTSP
 CAMERA_URL = 'rtsp://admin:SmartCamera@10.33.133.146:554/cam/realmonitor?channel=1&subtype=0'
-OUTPUT_FILE = './img/savedframe.jpg'
+# IMG_PATH = './img/rtsp_img.jpg' #CB debug
+IMG_PATH = './img/savedframe.jpg'
+IMG_HEIGHT = 960
+IMG_WIDTH = 1280
 # -----------------------------------------------------------------------------
 
 
@@ -60,19 +64,15 @@ def on_connect(mqttc, obj, flags, rc):
 
 def on_message(mqttc, obj, msg):
     print(msg.topic + " " + str(msg.qos) + " " + str(msg.payload))
-    mqttc.publish(PUB_TOPIC, "PONG!", 0) # CB debug
+    # mqttc.publish(PUB_TOPIC, "PONG!", 0) # CB debug
     capture_frame()
-    execute_image_recognition()
-    
-
+    execute_image_recognition(mqttc)
 
 def on_publish(mqttc, obj, mid):
     print("mid: " + str(mid))
 
-
 def on_subscribe(mqttc, obj, mid, granted_qos):
     print("Subscribed: " + str(mid) + " " + str(granted_qos))
-
 
 def on_log(mqttc, obj, level, string):
     print(string)
@@ -98,8 +98,9 @@ def capture_frame():
         # # Display the frame
         # cv2.imshow('RTSP Frame', frame)
         # cv2.waitKey(0) # press 'q' while selecting the picture viwer window to continue
-        # save frame
-        cv2.imwrite(OUTPUT_FILE, frame)
+        
+        # Save frame
+        cv2.imwrite(IMG_PATH, frame) # Comment for CB debug
 
     finally:
         # Release the capture object
@@ -159,8 +160,7 @@ class ImgRect():
         cv2.rectangle(self.image, (x_min, y_min), (x_max, y_max), (0, 0, 255), 3)
         text = "Pimenteira"
         cv2.putText(self.image, text, (x_min, y_min - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
-        cv2.imshow("Imagem com Retangulo", self.image)
-        cv2.waitKey(0)
+        
 
     def rect_values(self):
         x_min, y_min, x_max, y_max = self.rect
@@ -170,15 +170,44 @@ class ImgRect():
         return rect_values
 
 # Functions
-def execute_image_recognition():
-    result_img_with_box = DetectionBox(IMG_PATH)
-    measureBox = MeasureBox(result_img_with_box.result)
-    img_size = ImgSize(IMG_PATH)
-    img_size.img_values(img_size.image)
-    
-    img_rect = ImgRect(IMG_PATH,measureBox._coordenadas_caixa)
-    img_rect.show_img_com_rect()
-    rect_values = str(img_rect.rect_values)
+def execute_image_recognition(mqttc):
+    try: 
+        result_img_with_box = DetectionBox(IMG_PATH)
+        measureBox = MeasureBox(result_img_with_box.result)
+        img_size = ImgSize(IMG_PATH)
+        img_size.img_values(img_size.image)
+        
+        img_rect = ImgRect(IMG_PATH,measureBox._coordenadas_caixa)
+        rect_values = str(img_rect.rect_values)
+        msg_buffer = {
+            "data":{
+                "recongized":True,
+                "image":{
+                    "height":IMG_HEIGHT,
+                    "width":IMG_WIDTH,
+                    "label":"Pimenteira", 
+                    "start_x":str(img_rect.rect_values[0]),
+                    "start_y":str(img_rect.rect_values[1]),
+                    "end_x":str(img_rect.rect_values[2]),
+                    "end_y":str(img_rect.rect_values[3]),
+                    "color":(0, 0, 255), 
+                    "thickness":3
+                } 
+            }
+        }
+        msg_buffer=json.dumps(msg_buffer)
+        mqttc.publish(PUB_TOPIC, msg_buffer, 0)
+        return
+    except:
+        print("No Pimenteiras detected!!!!")
+        msg_buffer = {
+            "data":{
+                "recongized":False
+            }
+        }
+        msg_buffer=json.dumps(msg_buffer)
+        mqttc.publish(PUB_TOPIC, msg_buffer, 0)
+        return
 # ------------------
     
 # -----------------------------------------------------------------------------
