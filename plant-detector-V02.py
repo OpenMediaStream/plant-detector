@@ -181,7 +181,7 @@ def execute_image_recognition(mqttc):
         rect_values = str(img_rect.rect_values)
         msg_buffer = {
             "data":{
-                "recongized":True,
+                "recognized":True,
                 "image":{
                     "height":IMG_HEIGHT,
                     "width":IMG_WIDTH,
@@ -202,7 +202,18 @@ def execute_image_recognition(mqttc):
         print("No Pimenteiras detected!!!!")
         msg_buffer = {
             "data":{
-                "recongized":False
+                "recognized":False,
+                "image":{
+                    "height":IMG_HEIGHT,
+                    "width":IMG_WIDTH,
+                    "label":"", 
+                    "start_x":str(0),
+                    "start_y":str(0),
+                    "end_x":str(0),
+                    "end_y":str(0),
+                    "color":(0, 0, 255), 
+                    "thickness":3
+                } 
             }
         }
         msg_buffer=json.dumps(msg_buffer)
