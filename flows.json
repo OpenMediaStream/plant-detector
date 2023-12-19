@@ -1,0 +1,181 @@
+[
+    {
+        "id": "e1d78b1f20f3ad93",
+        "type": "mqtt in",
+        "z": "1a0e88a159fa82e8",
+        "name": "",
+        "topic": "OpenMediaStream/plant-detector/001/output",
+        "qos": "2",
+        "datatype": "auto-detect",
+        "broker": "53eb82684aad5187",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 210,
+        "y": 100,
+        "wires": [
+            [
+                "baa307f7832a203d"
+            ]
+        ]
+    },
+    {
+        "id": "a68eb1a687c32c10",
+        "type": "inject",
+        "z": "1a0e88a159fa82e8",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "30",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 130,
+        "y": 220,
+        "wires": [
+            [
+                "5ade8e569e4a9f84"
+            ]
+        ]
+    },
+    {
+        "id": "e8764be0599a8fbe",
+        "type": "ui_template",
+        "z": "1a0e88a159fa82e8",
+        "group": "9e228920a5774413",
+        "name": "",
+        "order": 0,
+        "width": "30",
+        "height": "30",
+        "format": "<html lang=\"en\">\n\n<head>\n    <meta charset=\"utf-8\" />\n    <title>WebRTC</title>\n</head>\n\n<style>\n    .frame {\n        position: absolute;\n        left: {{msg.payload.data.image.frame_pos_x}}px;\n        top: {{msg.payload.data.image.frame_pos_y}}px;\n        z-index: 1;\n    }\n\n    .text {\n        position: absolute;\n        left: {{msg.payload.data.image.label_pos_x}}px;\n        top: {{msg.payload.data.image.label_pos_y}}px;\n        z-index: 2;\n    }\n\n    .cam {\n        position: absolute;\n        left: 0px;\n        top: 0px;\n        z-index: 0;\n    }\n</style>\n\n<body>\n    <canvas class=\"frame\" id=\"myCanvas\" width=\"{{msg.payload.data.image.frame_size_x}}\" height=\"{{msg.payload.data.image.frame_size_y}}\" style=\"border:5px solid red\"></canvas>\n    <text class=\"text\" style=\"background-color:whitesmoke; color:red; font-family:arial; font-size: {{msg.payload.data.image.font}}px;\">{{msg.payload.data.image.label}}</text>\n        <iframe src=\"https://mediaserver.maua.br/webrtc/agro.html\" width=\"1280px\" height=\"960px\" frameBorder=\"0\"></iframe>\n</body>\n\n</html>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 400,
+        "y": 140,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "5ade8e569e4a9f84",
+        "type": "mqtt out",
+        "z": "1a0e88a159fa82e8",
+        "name": "",
+        "topic": "OpenMediaStream/plant-detector/001/input",
+        "qos": "",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "53eb82684aad5187",
+        "x": 250,
+        "y": 260,
+        "wires": []
+    },
+    {
+        "id": "baa307f7832a203d",
+        "type": "function",
+        "z": "1a0e88a159fa82e8",
+        "name": "function 2",
+        "func": "if(msg.payload.data.recognized == true){\n    var frame_size_x = parseInt(msg.payload.data.image.end_x) - parseInt(msg.payload.data.image.start_x);\n    var frame_size_y = parseInt(msg.payload.data.image.end_y) - parseInt(msg.payload.data.image.start_y);\n    var frame_pos_x = parseInt(msg.payload.data.image.start_x);\n    var frame_pos_y = parseInt(msg.payload.data.image.start_y);\n    var label_pos_x = parseInt(msg.payload.data.image.start_x);\n    var label_pos_y = parseInt(msg.payload.data.image.start_y) - 30;\n\n    msg.payload.data.image.frame_size_x = frame_size_x;\n    msg.payload.data.image.frame_size_y = frame_size_y;\n    msg.payload.data.image.frame_pos_x = frame_pos_x;\n    msg.payload.data.image.frame_pos_y = frame_pos_y;\n    msg.payload.data.image.label_pos_x = label_pos_x;\n    msg.payload.data.image.label_pos_y = label_pos_y;\n    msg.payload.data.image.font = 25;\n} else {\n    msg.payload.data.image.frame_size_x = 0;\n    msg.payload.data.image.frame_size_y = 0;\n    msg.payload.data.image.frame_pos_x = 0;\n    msg.payload.data.image.frame_pos_y = 0;\n    msg.payload.data.image.label_pos_x = 0;\n    msg.payload.data.image.label_pos_y = 0;\n    msg.payload.data.image.font = 0 ;\n}\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 200,
+        "y": 140,
+        "wires": [
+            [
+                "e8764be0599a8fbe"
+            ]
+        ]
+    },
+    {
+        "id": "912462bd7ed8fa6c",
+        "type": "comment",
+        "z": "1a0e88a159fa82e8",
+        "name": "Receive data from Plant-Detector",
+        "info": "",
+        "x": 170,
+        "y": 60,
+        "wires": []
+    },
+    {
+        "id": "70233fca1fa1e107",
+        "type": "comment",
+        "z": "1a0e88a159fa82e8",
+        "name": "Send MQTT to execute Plant-Detector",
+        "info": "",
+        "x": 190,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "53eb82684aad5187",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "smartcampus.maua.br",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": false,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "9e228920a5774413",
+        "type": "ui_group",
+        "name": "Agro",
+        "tab": "c055df7ca7a3af62",
+        "order": 1,
+        "disp": true,
+        "width": "30",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "c055df7ca7a3af62",
+        "type": "ui_tab",
+        "name": "Agro",
+        "icon": "dashboard",
+        "disabled": false,
+        "hidden": false
+    }
+]

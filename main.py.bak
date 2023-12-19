@@ -184,10 +184,10 @@ def main():
      'mjpeg_url_ext':'agro_cam'}
     ]
     streams = [x['mjpeg_url_ext'] for x in rtsp_cameras_transforms]
-    #mjpg_server = mjpg_stream(ip = '127.0.0.1', streams = streams, port = 8090)
+    # mjpg_server = mjpg_stream(ip = '127.0.0.1', streams = streams, port = 8090)
     time.sleep(0.8)
-    #rtsp_transform = ExtractImage(mjpg_server, rtsp_cameras_transforms)
-    #rtsp_transform.start_threads()
+    # rtsp_transform = ExtractImage(mjpg_server, rtsp_cameras_transforms)
+    # rtsp_transform.start_threads()
 
     result_img_with_box = DetectionBox(IMG_PATH)
     measureBox = MeasureBox(result_img_with_box.result)
