@@ -44,7 +44,8 @@ SUB_TOPIC = "OpenMediaStream/plant-detector/001/input"
 PUB_TOPIC = "OpenMediaStream/plant-detector/001/output"
 
 # YOLO 
-YOLO_IA = './yolo/best_ICv2.pt'
+# YOLO_IA = './yolo/best_ICv2.pt'
+YOLO_IA = './yolo/model.pth'
 PROCESSED_IMAGE = './img/output.jpg'
 
 # RTSP
